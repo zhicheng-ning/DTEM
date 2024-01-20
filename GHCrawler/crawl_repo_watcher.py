@@ -23,8 +23,9 @@ class WatcherCrawler(Crawler):
         while True:
             page += 1
             url = "https://api.github.com/repos/{}/{}/subscribers?per_page={}&page={}".format(usr, repo, per_page, page)
-            response = self.request(url, auth_token)
-            if not response:
+            # response = self.request(url, auth_token)
+            response = self.requestWithTokens(url, auth_token)
+            if not response or len(response.json()) == 0:
                 break
             stargazers = response.json()
             results.extend([x["login"] for x in stargazers])

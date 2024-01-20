@@ -40,7 +40,8 @@ class ReadmeCrawler(Crawler):
         for s in suffixs:
             url = "https://api.github.com/repos/{}/{}/contents/{}".format(usr, repo, s)
             print(url)
-            response = self.request(url, auth_token)
+            # response = self.request(url, auth_token)
+            response = self.requestWithTokens(url, auth_token)
             if response:
                 break
 
@@ -84,7 +85,7 @@ Repo README Crawler
 """
 def crawl_readme():
     error_repos = set()
-    with open(LOG_DIR+"readme_err.log", "r", encoding="utf-8") as inf:
+    with open(LOG_DIR+"readme_err.log", "a+", encoding="utf-8") as inf:
         for line in inf:
             error_repos.add(line.strip())
     crawled_repos = set()

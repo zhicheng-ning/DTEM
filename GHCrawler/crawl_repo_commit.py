@@ -16,7 +16,8 @@ class PRCommitCralwer(Crawler):
     
     def crawl(self, pr_commit_url, auth_token=None):
         results = []
-        response = self.request(pr_commit_url)
+        # response = self.request(pr_commit_url)
+        response = self.requestWithTokens(pr_commit_url, auth_token)
         if not response:
             return []
 

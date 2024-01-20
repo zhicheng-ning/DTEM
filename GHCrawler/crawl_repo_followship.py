@@ -23,8 +23,9 @@ class FollowerShipCrawler(Crawler):
         while True:
             # davidB
             url = "https://api.github.com/users/{}/followers?per_page={}&page={}".format(usr_name, per_page, page)
-            response = self.request(url, auth_token)
-            if not response:
+            # response = self.request(url, auth_token)
+            response = self.requestWithTokens(url, auth_token)
+            if not response or len(response.json()) == 0:
                 return results
 
             followers = response.json()
@@ -48,8 +49,9 @@ class FollowingShipCrawler(Crawler):
         page = 1
         while True:
             url = "https://api.github.com/users/{}/following?per_page={}&page={}".format(usr_name, per_page, page)
-            response = self.request(url, auth_token)
-            if not response:
+            # response = self.request(url, auth_token)
+            response = self.requestWithTokens(url, auth_token)
+            if not response or len(response.json()) == 0:
                 return results
             
             followings = response.json()
@@ -100,7 +102,7 @@ def crawl_followingship():
     
     outf = open(CRAWLED_DIR+"user_followings.txt", "a+", encoding="utf-8")
     # "contributors.json" should be generated from the results of  "crawl_contributors.py"
-    with open("contributors.json", "r", encoding="utf-8") as inf:
+    with open("contributor_nodes.json", "r", encoding="utf-8") as inf:
         usrs = json.load(inf)
         for usr in usrs:
             if usr in crawled_usrs:
@@ -112,3 +114,4 @@ def crawl_followingship():
 
 if __name__ == "__main__":
     crawl_followingship()
+    crawl_followership()

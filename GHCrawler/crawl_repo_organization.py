@@ -15,11 +15,14 @@ class OrganizationCrawler(Crawler):
         self, 
         log_file=LOG_DIR+"organization.log"):
         super(OrganizationCrawler, self).__init__(log_file)
-    
+    '''
+    获取某个 user 所参加过的 org
+    '''
     def crawl(self, usr_name, auth_token=None):
         per_page = 50
         url = "https://api.github.com/users/{}/orgs?per_page={}".format(usr_name, per_page)
-        response = self.request(url, auth_token)
+        # response = self.request(url, auth_token)
+        response = self.requestWithTokens(url, auth_token)
         if not response:
             return []
 

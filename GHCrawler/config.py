@@ -7,10 +7,12 @@ import signal
 
 import requests
 
+# API Tokens
 auth_tokens = [
     "example_tokens"
 ]
 
+# 定义感兴趣的文件类型后缀
 suffixs = [
     ".py", ".ipynb",    # python 
     ".java",            # Java
@@ -19,7 +21,7 @@ suffixs = [
     ".rb",              # Ruby
     ".go",              # Go
     ]
-
+# 定义需要忽略的文件或目录前缀
 ignore_prefixs = [
     ".github",
     "build",
@@ -30,7 +32,7 @@ ignore_prefixs = [
     ".license",
     "dist"
 ]
-
+# 一个装饰器，用于为函数设置超时时间，防止某些函数执行时间过长。
 def set_timeout(num):
     def wrap(func):
         def handle(signum, frame):
@@ -53,15 +55,15 @@ def set_timeout(num):
 
 class Crawler(object):
     def __init__(self, log_file):
-        self.errlog = open(log_file, "a+", encoding="utf-8")
+        self.errlog = open(os.path.join(os.path.dirname(__file__), log_file), "a+", encoding="utf-8")
 
     def __del__(self):
         self.errlog.close()
 
-    @set_timeout(180)
+    # @set_timeout(180)
     def request(self, url, auth_token=None, retry=2):
         if not auth_token:
-            auth_token = random.choice(auth_tokens)
+            auth_token = auth_tokens
         headers = {
             "Accept": "application/vnd.github.v3+json",
             "Authorization": "token {}".format(auth_token)
@@ -89,6 +91,42 @@ class Crawler(object):
             retry -= 1
         return None
     
+    def requestWithTokens(self, url, auth_token_list, retry=1):
+
+        os.environ['http_proxy'] = 'http://127.0.0.1:7890'
+        os.environ['https_proxy'] = 'http://127.0.0.1:7890'
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+        }
+        if not auth_token_list or auth_token_list is None:
+            auth_token_list = auth_tokens
+        for token in auth_tokens:
+            
+            headers["Authorization"] = f'token {token}'
+            # print("current_token:",token)
+            retry = 1
+            while retry > 0:
+                try:
+                    response = requests.get(url, headers=headers)
+                    if response.status_code == 200:
+                        # print("response:",response)
+                        print("url:",url)
+                        return response
+                    elif response.status_code == 403:
+                        # 处理速率限制或其他需要切换token的情况
+                        print(f"Token {token} is rate limited or not valid, switching to next token.")
+                        break  # 跳出重试循环，切换到下一个token
+                    else:
+                        # 对于其他错误，你可能希望记录或重试
+                        print(f"Request failed with status code {response.status_code}. Retrying...")
+                except requests.exceptions.RequestException as e:
+                    print(f"Request failed with exception {e}. Retrying...")
+                #time.sleep(random.randint(1, 3))  # 简单的退避策略，避免立即重试
+                retry -= 1
+            
+        return None  # 所有token都用完或请求失败
     def get_owner_and_repo_from_gh_url(self, gh_url:str):
         last_idx = gh_url.rfind("/")
         repo = gh_url[last_idx+1:]

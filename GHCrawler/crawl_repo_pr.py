@@ -22,8 +22,9 @@ class PRCralwer(Crawler):
         while should_continue:
             page += 1
             url = "https://api.github.com/repos/{}/{}/pulls?per_page={}&page={}&state=all".format(usr, repo, per_page, page)
-            response = self.request(url, auth_token)
-            if not response:
+            # response = self.request(url, auth_token)
+            response = self.requestWithTokens(url, auth_token)
+            if not response or len(response.json()) == 0:
                 should_continue = False
                 return results
             pulls = response.json()
@@ -40,7 +41,8 @@ class PRCralwer(Crawler):
                 p_merged = p["merged_at"]
                 p_body = p["body"]
                 p_commit_urls = list()
-                response = self.request(p["commits_url"], auth_token)
+                # response = self.request(p["commits_url"], auth_token)
+                response = self.requestWithTokens(p["commits_url"], auth_token)
                 if response:
                     p_commit_urls = [x["url"] for x in response.json()]
                 p_requested_reviewers = p["requested_reviewers"]
